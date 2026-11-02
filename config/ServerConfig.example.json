@@ -1,0 +1,19 @@
+{
+  "server": {
+    "host": "你的服务器公网IP",
+    "port": 22,
+    "user": "root",
+    "password": "",
+    "privateKeyPath": "C:\\Users\\你的用户名\\.ssh\\你的私钥",
+    "connectTimeoutSec": 20
+  },
+  "frp": {
+    "version": "0.71.1",
+    "bindPort": 21117,
+    "localSideRemotePort": 21118,
+    "peerRemotePort": 21119,
+    "token": "把这里换成你自己的随机字符串",
+    "installDir": "/opt/frp",
+    "logLevel": "info"
+  }
+}

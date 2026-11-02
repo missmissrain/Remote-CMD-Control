@@ -1,0 +1,22 @@
+# 真实配置（含服务器密码、frp token、私钥路径），不入库
+config/ServerConfig.json
+
+# 由配置文件生成的隧道配置（含 token）；模板见 frpc.toml.example
+分发包/FrpWindowsClient/frpc.toml
+
+# 运行产物与体积较大的二进制包
+output/
+软件/
+
+# 版本备份（本地保留即可）
+备份/
+
+# 截图与日志
+*.log
+*.png
+*.part
+
+# Python
+__pycache__/
+*.pyc
+.venv/

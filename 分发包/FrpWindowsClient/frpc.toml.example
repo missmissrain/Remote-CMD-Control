@@ -1,0 +1,24 @@
+# frpc 配置（由部署脚本生成）
+# 作用：本机主动连接 VPS 上的 frps，把本机 22 端口（OpenSSH Server）暴露到 VPS 的 21119 端口。
+# 隧道是 TCP 全双工的：两端可同时双向收发，既能被别人控制，也能从本机控制对方。
+#
+#   别人控制本机：  ssh -p 21119 本机用户名@你的服务器公网IP
+#   本机控制对方：  ssh -p 21118 对方用户名@你的服务器公网IP
+#
+# 注意：多台电脑必须使用不同的 remotePort，否则端口冲突。
+serverAddr = "你的服务器公网IP"
+serverPort = 21117
+
+auth.method = "token"
+auth.token = "把这里换成你自己的随机字符串"
+
+log.to = "C:/frp/frpc.log"
+log.level = "info"
+log.maxDays = 7
+
+[[proxies]]
+name = "win-cmd-ssh"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 22
+remotePort = 21119
