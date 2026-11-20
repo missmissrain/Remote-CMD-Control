@@ -1,6 +1,6 @@
 # 远程 CMD 控制（Remote-CMD-Control）
 
-发行版本：2026.11，配套 SynLove-Personal-Agent v2.0。
+发行版本：2026.11，配套 SynLove-Personal-Agent v2.1。
 
 通过 VPS FRP 转发访问 Windows OpenSSH 服务。被控电脑主动连接 VPS，控制端访问映射端口后，通过 SSH 执行 CMD 或传输文件，适用于没有公网入口的 Windows 设备。
 
