@@ -1,6 +1,15 @@
 # 远程 CMD 控制（Remote-CMD-Control）
 
-发行版本：2026.11，配套 SynLove-Personal-Agent v2.1。
+发行版本：**v3.0**（2026-11-26），配套 SynLove-Personal-Agent v3.0。
+
+## v3.0 更新内容
+
+- 新增 `src/MediaLayer/`：把远控音乐播放从临时脚本收敛成独立媒体层，负责播放器选择、播放状态与停止回收。
+- 新增远控音乐服务脚本：`MusicControl.py`（播放控制）、`RunMusicService.py`（常驻服务）、`InstallMusicService.ps1`（注册开机自启）。
+- 新增运维脚本：`VpsExtras.py`、`VpsSummary.py`、`CheckLocalState.ps1`，用于 VPS 附加组件部署与本机状态核查。
+- 新增配置模板 `config/MusicConfig.example.json`。
+- 补充 `tests/` 目录，覆盖媒体层与配置解析。
+- `.gitignore` 与 README 同步更新。
 
 通过 VPS FRP 转发访问 Windows OpenSSH 服务。被控电脑主动连接 VPS，控制端访问映射端口后，通过 SSH 执行 CMD 或传输文件，适用于没有公网入口的 Windows 设备。
 
@@ -19,11 +28,46 @@
 
 本项目不提供独立 HTTP 命令执行 API。模型服务的 HTTPS/WSS Hub 由 `synlove-relay` 提供，与本项目的 FRP/SSH 使用不同配置和凭据。
 
+## 远控音乐播放
+
+音乐播放属于被控电脑的执行能力，随本仓库维护，无需单独仓库，也无需启动该电脑上的 SynLove 主程序或 GUI。
+
+服务器负责酷狗搜索、登录和逐首解析音频地址，通过现有 SSH 通道调用被控电脑的 `scripts/MusicControl.py`。本机接收器运行在已登录用户的 Windows 会话中，使用 ffplay 拉取音频并播放。暂停、继续、停止和状态查询走相同通道。音乐地址不必经 VPS 中转，酷狗账号令牌留在服务器。
+
+本机需要已有 Python、ffplay、可用 SSH 通道及已登录的音频用户会话。在 PowerShell 中执行：
+
+```powershell
+.\scripts\InstallMusicService.ps1 -Python 'C:\Python\pythonw.exe' -Ffplay 'C:\ffmpeg\bin\ffplay.exe'
+& 'C:\Python\python.exe' -X utf8 .\scripts\MusicControl.py --action status
+```
+
+安装器创建 `SynLoveMusicReceiver` 用户登录计划任务，以无窗口方式启动。私有配置为 `config/MusicConfig.json`，自动生成随机令牌并限制文件权限。不要提交此文件。默认回环端口为 `127.0.0.1:17863`，可安装时用 `-Port` 显式指定；已有配置保留原端口。
+
+接收器只开放本机 `POST /v1/music`，要求 Bearer 令牌。SSH CLI 在目标电脑读取该令牌，无需把令牌发给服务器或模型。
+
+| 操作 | 必需字段 | 返回 |
+| --- | --- | --- |
+| `status` | `action` | 播放状态、暂停状态、播放ID、曲目和音频时钟 |
+| `play` | `action`、`requestId`、`url` | 新播放ID及进程状态；可选 `song`、`volume` |
+| `pause` / `resume` / `stop` | `action`、`requestId` | 操作后的真实状态 |
+
+自动化控制应附 `expectedPlaybackId`，避免旧任务停止新任务的音乐。同一请求ID会去重，重复ID不得携带不同指令。写操作不自动重放；远控断联时返回失败，不改用服务器扬声器。音频只允许配置白名单中的公网 HTTP/HTTPS 域名。
+
+CLI 支持 `--payload` 传入 UTF-8 JSON 的 Base64，或直接 `--action status/pause/resume/stop`。服务器 SynLove 的配置方式见主仓库 `kugou/README.md`。播放器及接收器退出后不会按 PID 扫描或终止其他软件。
+
+电脑关机、休眠、远控隧道离线或用户未登录时无法保证播放；接收器不绕过这些条件。播放进度用于确认音频处理，不代替扬声器音量、静音及物理听感验收。
+
 SSH 验证的是映射后 Windows 主机的指纹。首次接入应通过可信渠道比对指纹；后续指纹变化须人工核查，不能直接删除信任记录继续连接。SynLove 集成端会固定校验目标指纹。仓库中的初次部署 SSH 辅助器使用首次信任策略，仅应在已核实服务器身份的部署环境运行。
 
 命令超时不证明远端进程已经停止。对创建、删除、安装等有副作用的命令，先检查实际状态，再决定下一步，不自动重放。
 
 ## 版本记录
+
+### 远控音乐接收器 · 2026-11-04
+
+- 新增独立用户会话音乐接收器、SSH调用CLI和登录自启安装器，不依赖本机SynLove GUI。
+- 提供播放、暂停、继续、停止、音频时钟查询，以及鉴权、请求去重和独占实例保护。
+- 服务器可解析酷狗音频后交给指定电脑播放；播放地址和账号凭据不写公共文档。
 
 ### 2026.11 · 2026-11-03
 

@@ -1,0 +1,8 @@
+{
+  "port": 17863,
+  "token": "GENERATE_LOCALLY",
+  "ffplay": "ffplay",
+  "volume": 35,
+  "allowedHosts": ["kugou.com", "kugou.net", "kgimg.com"],
+  "maxBodyBytes": 65536
+}
